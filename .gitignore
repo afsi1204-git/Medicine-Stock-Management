@@ -1,0 +1,19 @@
+# Ignore local SQLite database and temporary files
+MSMWeb.db
+*.log
+*.tmp
+*.bak
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Environment files
+.env
+
+# Node/Javascript
+node_modules/
