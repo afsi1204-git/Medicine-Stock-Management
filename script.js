@@ -62,9 +62,17 @@ async function initDatabase() {
             )
         `);
         
-        if (isNewDb) {
-            saveDatabase();
-        }
+        // Ensure billing history table exists
+        db.run(`
+            CREATE TABLE IF NOT EXISTS billing_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                bill_time TEXT NOT NULL,
+                items TEXT NOT NULL,
+                total REAL NOT NULL
+            )
+        `);
+        
+        saveDatabase();
         
         // Load initial data
         loadBillingMedicines();
@@ -122,6 +130,8 @@ function showPage(pageId) {
     if (pageId === 'billing') {
         loadBillingMedicines();
         clearBill();
+    } else if (pageId === 'billingHistory') {
+        loadBillingHistory();
     } else if (pageId === 'checkStock') {
         loadStockTable();
     } else if (pageId === 'addStock') {
@@ -444,6 +454,9 @@ function processBill() {
         saveDatabase();
         
         const grandTotal = billItems.reduce((sum, item) => sum + item.total, 0);
+        // Save history before clearing bill
+        saveBillHistory(billItems, grandTotal);
+        
         showMessage('billingMessage', 
             `Bill processed successfully! Total: ₹${grandTotal.toFixed(2)}`, 'success');
         
@@ -467,6 +480,60 @@ function clearBill() {
     billItems = [];
     renderBillItems();
     clearMessage('billingMessage');
+}
+
+// Save billing history
+function saveBillHistory(items, total) {
+    if (!db) return;
+    const billTime = new Date().toISOString();
+    const itemsJson = JSON.stringify(items.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        total: item.total
+    })));
+    try {
+        db.run(`
+            INSERT INTO billing_history (bill_time, items, total)
+            VALUES (?, ?, ?)
+        `, [billTime, itemsJson, total]);
+        saveDatabase();
+    } catch (error) {
+        console.error('Error saving billing history:', error);
+    }
+}
+
+// Load billing history
+function loadBillingHistory() {
+    if (!db) return;
+    const tbody = document.getElementById('billingHistoryBody');
+    const messageEl = document.getElementById('billingHistoryMessage');
+    tbody.innerHTML = '';
+    clearMessage('billingHistoryMessage');
+
+    try {
+        const result = db.exec(`SELECT bill_time, items, total FROM billing_history ORDER BY bill_time DESC`);
+        if (result.length > 0 && result[0].values.length > 0) {
+            result[0].values.forEach(row => {
+                const [billTime, itemsJson, total] = row;
+                const items = JSON.parse(itemsJson);
+                const itemsText = items.map(item => `${item.name} x${item.quantity}`).join(', ');
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(billTime).toLocaleString()}</td>
+                    <td>${itemsText}</td>
+                    <td>₹${parseFloat(total).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No billing history found</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading billing history:', error);
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Error loading billing history</td></tr>';
+        showMessage('billingHistoryMessage', 'Error loading billing history. Please refresh the page.', 'error');
+    }
 }
 
 // Load stock table
