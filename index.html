@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medicine Stock Management</title>
+    <title>PharmaPulse - Medicine Stock Management</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 </head>
@@ -11,7 +11,8 @@
     <!-- Main Menu -->
     <div id="mainMenu" class="container active">
         <div class="menu-card">
-            <h1 class="title">Medicine Stock Management</h1>
+            <h1 class="title">PharmaPulse</h1>
+            <p class="subtitle">Medicine Stock Management</p>
             <div class="menu-options">
                 <button class="menu-btn" onclick="showPage('addStock')">
                     <span class="icon">➕</span>
@@ -20,6 +21,10 @@
                 <button class="menu-btn" onclick="showPage('billing')">
                     <span class="icon">🧾</span>
                     <span>Billing</span>
+                </button>
+                <button class="menu-btn" onclick="showPage('billingHistory')">
+                    <span class="icon">📜</span>
+                    <span>Billing History</span>
                 </button>
                 <button class="menu-btn" onclick="showPage('checkStock')">
                     <span class="icon">📊</span>
@@ -97,6 +102,30 @@
                 <button onclick="processBill()" class="submit-btn" id="processBillBtn" style="display:none;">Process Bill</button>
             </div>
             <div id="billingMessage" class="message"></div>
+        </div>
+    </div>
+
+    <!-- Billing History Page -->
+    <div id="billingHistory" class="container">
+        <div class="page-card">
+            <div class="page-header">
+                <h2>Billing History</h2>
+                <button class="back-btn" onclick="showPage('mainMenu')">← Back</button>
+            </div>
+            <div class="stock-table-container">
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Bill Date</th>
+                            <th>Items</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billingHistoryBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="billingHistoryMessage" class="message"></div>
         </div>
     </div>
 
